@@ -82,7 +82,7 @@ l1ball.linreg <- function(X, y, sig20=0.1, tau0=rep(0.5,ncol(X)),
       if (kappa < 0) return(-Inf)
       - sum((y-X%*%softthresholding(beta, kappa))^2) / (2*sig2) - hyp$lam_K0*kappa
     }
-    return(slice_sampler(f=log_f, x0=kappa0, w=0.5, m=10))
+    return(slice_sampler(f=log_f, x0=kappa0, w=0.3, m=10))
   }
   
   
