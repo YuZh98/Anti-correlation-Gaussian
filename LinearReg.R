@@ -1,11 +1,15 @@
-source("~/SliceSampler.R")
-source("~/SourceCode.R")
+rm(list=ls())
+
+setwd('') # Set the working directory
+source("SliceSampler.R")
+source("SourceCode.R")
+require(ggplot2)
 
 
 n <- 300
 p <- 500
 d0 <- 10 # The number of non-zero entries
-rho0 <- 0.5 # The correlation of Sigma when x_i\sim N(0,Sigma)
+rho0 <- 0.5 # The correlation of x_i and x_j is rho^|i-j|
 sig2_0 <- 1 # True error variance
 c0 <- 3 # The SNR coefficient for |beta_j|
 
@@ -14,17 +18,17 @@ sig20 <- 1
 tau0 <- rep(0.5, p)
 
 ### Prior parameters
-hyp <- list(lam_K0=0.5, aa=5, bb=1, cc=1, dd=1)
+hyp <- list(lam_K0=1, aa=2, bb=1, cc=1, dd=1)
 
 ### Data Generation
-X <- matrix(rnorm(n*p),n)
+set.seed(2303)
 X0 <- matrix(rnorm(n*p),n)
 cord <- c(1:p)
 dist <- abs(outer(cord,cord,"-"))
 Cor <- (rho0**dist)
 X <- X0%*%(chol(Cor))
 
-set.seed(2303)
+
 theta0 <- rep(0, p)
 theta0[1:d0] <- c0 * sqrt(sig2_0*log(p)/n) * c(2,-3,2,2,-3,3,-2,3,-2,3) # Ground truth
 y0 <- X%*%theta0
@@ -32,8 +36,11 @@ y <- sqrt(sig2_0)*rnorm(n) + X%*%theta0
 
 
 ##### Fit the model
-fit <- l1ball.linreg(X, y, sig20=sig20, tau0=tau0, hyp=hyp,
-                     steps=10000, burnin=2000)
+fit <- l1ball.linreg(X, y, sig20=1, tau0=rep(1,p), K0=1,
+                     hyp=hyp, theta0=theta0, 
+                     w=0.05, m=10,
+                     steps=20000, burnin=10000, thin=1,
+                     init_method = 'random')
 cat("The total running time for the Blocked Gibbs sampler is ", fit$running.time, " seconds.\n")
 
 

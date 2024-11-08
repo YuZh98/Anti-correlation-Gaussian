@@ -1,11 +1,13 @@
 # Anti-correlation-Gaussian
-Codes for the paper [Gibbs Sampling using Anti-correlation Gaussian Data Augmentation, with Applications to L1-ball-type Models](https://arxiv.org/abs/2309.09371).
 
-```SourceCode.R``` and ```SliceSampler.R``` are two **source files**. The former defines a function using the anti-correlation Gaussian data augmentation trick for linear regression. The latter uses the stepping-out and the shrinkage techniques in [Slice Sampling](https://arxiv.org/pdf/physics/0009028.pdf) by Radford M. Neal. You can source it if a slice sampler is needed in your project. It works both for scalar and multi-dimensional cases with a given direction.
+This repository contains the code for the paper [*Gibbs Sampling using Anti-correlation Gaussian Data Augmentation, with Applications to L1-ball-type Models*](https://arxiv.org/abs/2309.09371).
 
-```LinearReg.R``` contains a toy example: variable selection in linear regression. It will plot a comparison between the posterior estimation and ground truth, trace plots of the parameters involved, and ACF plots.
+## Overview of Files
 
-```TruncatedMVN.R``` contains an extension of the anti-correlation Gaussian trick. We aim to sample from a truncated multivariate normal distribution with a separable truncation (meaning the constraint on the random vector is a high-dimensional box). The file contains a 2-dimensional toy example and it will plot the marginal densities and the joint density. You can increase the dimension ```p``` to suit your needs.
+- **`SourceCode.R`**: Defines a function that implements the anti-correlation Gaussian data augmentation technique for linear regression models. This file provides the core functionality for the methods described in the paper.
 
+- **`SliceSampler.R`**: Provides an implementation of slice sampling based on the stepping-out and shrinkage techniques detailed in [*Slice Sampling*](https://arxiv.org/pdf/physics/0009028.pdf) by Radford M. Neal. This code can be sourced if a slice sampler is required for your project and supports both scalar and multi-dimensional cases with a specified direction.
 
+- **`LinearReg.R`**: Demonstrates a toy example of variable selection in linear regression. It generates plots comparing posterior estimates with ground truth values, along with trace plots and autocorrelation function (ACF) plots for the parameters.
 
+- **`TruncatedMVN.R`**: Extends the anti-correlation Gaussian technique to sampling from a truncated multivariate normal distribution with separable truncation (i.e., the constraint on the random vector is a high-dimensional box). The file includes a 2-dimensional example with plots of the marginal densities and joint density. The dimension `p` can be modified to accommodate higher dimensions as needed.

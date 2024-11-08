@@ -1,16 +1,23 @@
 require(truncnorm)
+require(BoomSpikeSlab)
 
-l1ball.linreg <- function(X, y, sig20=0.1, tau0=rep(0.5,ncol(X)),
-                          hyp=list(lam_K0=0.5, aa=5, bb=1, cc=1, dd=1), 
-                          steps=3000, burnin=1000, 
-                          n=length(y), p=ncol(X)){
+l1ball.linreg <- function(X, y, sig20=0.1, tau0=rep(0.5,ncol(X)), K0=1,
+                          hyp=list(lam_K0=0.5, aa=1, bb=1, cc=1, dd=1),
+                          w=0.05, m=10,
+                          steps=20000, burnin=10000, thin=1,
+                          n=length(y), p=ncol(X),
+                          init_method='random', theta0=NULL){
   ### Need source('SliceSampler.R') to run this function! ###
   ### X: n by p design matrix
   ### y: n data points
-  ### sig20, tau0: initial values for sig2 and tau
+  ### sig20, tau0, K0: initial values for sig2, tau, an K0
   ### hyp: a list of hyperparameters for the prior specification
+  ### w, m: parameters for the slice sampler
   ### steps: number of total iterations of the Gibbs sampler
   ### burnin: number of warm-up iterations that are discarded
+  ### thin: thinning parameter (default is 1, no thinning)
+  ### n, p: sample size and number of predictors
+  ### init_method: 'random', 'SSVS', 'predetermined' for initialization; if 'predetermined', theta0 must be provided
   ### Output: a list of traces and running time for the Gibbs sampler
   
   ### Getting necessary quantities
@@ -27,10 +34,23 @@ l1ball.linreg <- function(X, y, sig20=0.1, tau0=rep(0.5,ncol(X)),
   ### Initializing parameters
   sig2 <- sig20
   tau <- tau0
-  K0 <- 1
-  theta <- rnorm(p)
-  beta <- sign(theta)*(abs(theta)+K0)
+  K0 <- K0
   
+  if (init_method=='random'){
+    theta <- rnorm(p)
+    beta <- sign(theta)*(abs(theta)+K0)
+  } else if (init_method=='SSVS'){
+    pre_model <- lm.spike(y ~ X, niter=3000)
+    theta <- colMeans(pre_model$beta[2000:3000,-1])
+    beta <- sign(theta)*(abs(theta)+K0)
+    sig2 <- mean(pre_model$sigma[2000:3000]^2)
+  } else if (init_method=='predetermined'){
+    if (is.null(theta0)) stop("theta0 must be provided!")
+    theta <- theta0
+    beta <- sign(theta)*(abs(theta)+K0)
+  } else{
+    stop("Invalid initialization method!")
+  }
   
   ### Defining auxiliary functions
   softthresholding <- function(beta, threshold){
@@ -82,15 +102,18 @@ l1ball.linreg <- function(X, y, sig20=0.1, tau0=rep(0.5,ncol(X)),
       if (kappa < 0) return(-Inf)
       - sum((y-X%*%softthresholding(beta, kappa))^2) / (2*sig2) - hyp$lam_K0*kappa
     }
-    return(slice_sampler(f=log_f, x0=kappa0, w=0.3, m=10))
+    return(slice_sampler(f=log_f, x0=kappa0, w=w, m=m))
   }
   
   
-  ### Keep track of the trace
-  trace_theta <- matrix(0, steps-burnin, p)
-  trace_sig2 <- numeric(steps-burnin)
-  trace_tau <- matrix(0, steps-burnin, p)
-  trace_K0 <- numeric(steps-burnin)
+  ### Calculate the number of stored samples based on thinning
+  n_samples <- if (thin == 1) (steps - burnin) else ceiling((steps - burnin) / thin)
+  
+  ### Initialize the trace objects to store only thinned samples
+  trace_theta <- matrix(0, n_samples, p)
+  trace_sig2 <- numeric(n_samples)
+  trace_tau <- matrix(0, n_samples, p)
+  trace_K0 <- numeric(n_samples)
   
   ##### Main
   pb = txtProgressBar(1, steps, style=3)
@@ -107,14 +130,25 @@ l1ball.linreg <- function(X, y, sig20=0.1, tau0=rep(0.5,ncol(X)),
     phi <- Xy / sig2
     d = (lam_p+1E-6)/sig2
     
-    ### Burn-in
-    m = step-burnin
-    if(m>0){
-      trace_theta[m,] <- theta
-      trace_sig2[m] <- sig2
-      trace_tau[m,] <- tau
-      trace_K0[m] <- K0
+    ### Burn-in and Thinning
+    m = step - burnin
+    if (m > 0) {  
+      if (thin == 1) {
+        # No thinning; store every sample after burn-in
+        trace_theta[m, ] <- theta
+        trace_sig2[m] <- sig2
+        trace_tau[m, ] <- tau
+        trace_K0[m] <- K0
+      } else if (m %% thin == 0) {
+        # Thinning; store every `thin`-th sample
+        index <- m / thin  # Precompute the index for thinned trace
+        trace_theta[index, ] <- theta
+        trace_sig2[index] <- sig2
+        trace_tau[index, ] <- tau
+        trace_K0[index] <- K0
+      }
     }
+    
     setTxtProgressBar(pb,step)
   })[3]
   close(pb)
