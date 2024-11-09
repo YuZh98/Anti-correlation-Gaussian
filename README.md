@@ -1,6 +1,7 @@
 # Anti-correlation-Gaussian
 
-This repository contains the code for the paper [*Gibbs Sampling using Anti-correlation Gaussian Data Augmentation, with Applications to L1-ball-type Models*](https://arxiv.org/abs/2309.09371).
+This repository contains the code and the funnctional magnetic resonance
+imaging (fMRI) data for the paper [*Gibbs Sampling using Anti-correlation Gaussian Data Augmentation, with Applications to L1-ball-type Models*](https://arxiv.org/abs/2309.09371).
 
 ## Overview of Files
 
