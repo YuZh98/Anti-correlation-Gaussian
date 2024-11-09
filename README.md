@@ -12,3 +12,5 @@ imaging (fMRI) data for the paper [*Gibbs Sampling using Anti-correlation Gaussi
 - **`LinearReg.R`**: Demonstrates a toy example of variable selection in linear regression. It generates plots comparing posterior estimates with ground truth values, along with trace plots and autocorrelation function (ACF) plots for the parameters.
 
 - **`TruncatedMVN.R`**: Extends the anti-correlation Gaussian technique to sampling from a truncated multivariate normal distribution with separable truncation (i.e., the constraint on the random vector is a high-dimensional box). The file includes a 2-dimensional example with plots of the marginal densities and joint density. The dimension `p` can be modified to accommodate higher dimensions as needed.
+
+- **`100206_tfMRI_MOTOR_LR.nii.gz`**: The fMRI data.
