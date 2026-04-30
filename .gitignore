@@ -1,0 +1,23 @@
+# R session state
+.Rhistory
+.RData
+.Rapp.history
+.Ruserdata
+
+# RStudio
+.Rproj.user/
+*.Rproj
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Output / temp
+*.log
+*.out
+*.aux
+*.tmp
